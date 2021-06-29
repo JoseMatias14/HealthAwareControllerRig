@@ -60,7 +60,7 @@ par.A_r = pi.*(par.D_r/2).^2;%[m2]
 par.QgMax = 7.5; % [sL/min] 
 
 % Sampling time of the production optimization methods
-par.T = 10; %[s]
+par.T = 60; %[s]
 
 %% Parameter Estimation
 par.Sigma = eye(6); % since cov of P is super small, it is better to use the non-weigthed version

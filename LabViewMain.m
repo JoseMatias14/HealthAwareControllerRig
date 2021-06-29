@@ -76,118 +76,25 @@ pi104 = I_vector(19,dataCrop);
 % number of measurements in the data window
 dss = size(pi104,2);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% CODE GOES HERE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% run SS identification
-%relevant measurements are only the liquid flowrates
-yPlantArray = [fi101;fi102;fi103];
+%%%%%%%%%%%%%%%%%%
+% CODE GOES HERE %
+%%%%%%%%%%%%%%%%%%
 
-[flagSS,pSS] = SSDetection(yPlantArray);
+%%%%%%%%%%%%%%%%%%
+% CODE GOES HERE %
+%%%%%%%%%%%%%%%%%%
+% compute new values for the valve opening setpoints
+% using random values for testing
+o_new = 0.1*ones(3,1) + (0.9*ones(3,1) - 0.1*ones(3,1)).*rand(3,1);
+O_vector = O_vector + OptConf.ku.*(o_new - O_vector);
 
-if flagSS == 1 % we are at steady state at the current instant
+SS = 0;
+Estimation = 0;
+Optimization = 0;
+Result = 0;
+Parameter_Estimation = [0,0,0,0,0,0];
+State_Variables_Estimation = [0,0,0,0,0,0];
+State_Variables_Optimization = [0,0,0,0,0,0];
+Optimized_Air_Injection = [0,0,0];
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Estimating SS model parameters %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    yPlant = [fi101; 
-              fi102;
-              fi103;
-              1.01325 + 10^-3*pi101; %[mbarg]-->[bar a];
-              1.01325 + 10^-3*pi102;
-              1.01325 + 10^-3*pi103];
-          
-    uPlant = [fic104; %conversion [L/min] --> [kg/s]
-              fic105;
-              fic106;
-              cv101*ones(1,dss); %workaround - i just have the last measurement here. Since it is the disturbance, it doesn't really matter;
-              cv102*ones(1,dss);
-              cv103*ones(1,dss);
-              pi104 + 1.01325];            
-    
-    % if the last measurement is considered at SS, we assume that the whole period between the current and past RTO execution is at SS (mean filtering)      
-    uEst = mean(uPlant(:,end - 10:end),2);
-    yEst = mean(yPlant(:,end - 10:end),2);
 
-    % running casadi
-    [thetaHat,xEstHat,zEstHat,yEstHat,~,flagEst] = ErosionRigSSEstimation(xEstHat,zEstHat,thetaHat,uEst,yEst,par);
-
-    if flagEst == 1
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Optimizing SS model parameters %
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        uGuess = uEst;
-        
-        [uOpt,xOptHat,zOptHat,phi,flagOpt] = ErosionRigSSOptimization(xEstHat,zEstHat,thetaHat,uGuess,par);
-        
-        if flagOpt == 1
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %Send Variable
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %Filter for optimum
-            fic104sp = u0old(1) + OptConf.ku.*(uOpt(1) - u0old(1));
-            fic105sp = u0old(2) + OptConf.ku.*(uOpt(2) - u0old(2));
-            fic106sp = u0old(3) + OptConf.ku.*(uOpt(3) - u0old(3));
-
-            O_vector = vertcat(fic104sp,fic105sp,fic106sp)';
-            SS = 1;
-            Estimation = 1;
-            Optimization = 1;
-            Result = phi;
-            Parameter_Estimation = thetaHat';
-            State_Variables_Estimation = (par.H*zEstHat)';
-            State_Variables_Optimization = (par.H*zOptHat)';
-
-            Optimized_Air_Injection = uOpt';
-        else
-            %%%%%%%%%
-            %(dummy)%
-            %%%%%%%%%
-            % compute new values for the gas flow rate setpoints
-            O_vector = vertcat(fic104sp,fic105sp,fic106sp)';
-
-            SS = 1;
-            Estimation = 1;
-            Optimization = 0;
-            Result = 0;
-            Parameter_Estimation = [0,0,0,0,0,0];
-            State_Variables_Estimation = [0,0,0,0,0,0];
-            State_Variables_Optimization = [0,0,0,0,0,0];
-            Optimized_Air_Injection = [0,0,0];
-        end
-        
-    else  
-        %%%%%%%%%
-        %(dummy)%
-        %%%%%%%%%
-        % compute new values for the gas flow rate setpoints
-        O_vector = vertcat(fic104sp,fic105sp,fic106sp)';
-
-        SS = 1;
-        Estimation = 0;
-        Optimization = 0;
-        Result = 0;
-        Parameter_Estimation = [0,0,0,0,0,0];
-        State_Variables_Estimation = [0,0,0,0,0,0];
-        State_Variables_Optimization = [0,0,0,0,0,0];
-        Optimized_Air_Injection = [0,0,0];
-    end
-    
-    
-else
-    %%%%%%%%%
-    %(dummy)%
-    %%%%%%%%%
-    % compute new values for the gas flow rate setpoints
-    O_vector = vertcat(fic104sp,fic105sp,fic106sp)';
-    
-    SS = 0;
-    Estimation = 0;
-    Optimization = 0;
-    Result = 0;
-    Parameter_Estimation = [0,0,0,0,0,0];
-    State_Variables_Estimation = [0,0,0,0,0,0];
-    State_Variables_Optimization = [0,0,0,0,0,0];
-    Optimized_Air_Injection = [0,0,0];
-    
-end
