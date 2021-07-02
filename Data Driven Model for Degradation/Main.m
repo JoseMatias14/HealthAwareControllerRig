@@ -47,7 +47,7 @@ nExec = 60/parPlant.T; %--> executes every 60s
 
 %simulation parameters
 nInit = 0; %[s]
-nFinal = 50*parPlant.T; %[sampling time] - arbitrarily chosen
+nFinal = 2*60*parPlant.T; %[sampling time] - arbitrarily chosen
 tgrid = (nInit:parPlant.T:nFinal)/parPlant.T; %[min] one measurements per second
 
 %initial condition
@@ -62,9 +62,9 @@ parPlant.H(3,3) = 1e-2*60*1e3/parPlant.rho_o(3); %wro-oil rate from reservoir, w
 parPlant.H(4,7) = 1; %prh - riser head pressure well 1
 parPlant.H(5,8) = 1; %prh - riser head pressure well 2
 parPlant.H(6,9) = 1; %prh - riser head pressure well 3
-parPlant.H(7,13) = 1; %dp - well 1
-parPlant.H(8,14) = 1; %dp - well 2
-parPlant.H(9,15) = 1; %dp - well 3
+
+% type of model used in the erosion evolution
+erosionEvolution = 'deterministic'; % 'deterministic' | 'deterministicWithBreak' | 'randomIncrements'
 
 %% Run configuration file
 InitializationLabViewMain %here we use the same syntax as in the rig
@@ -73,8 +73,9 @@ InitializationLabViewMain %here we use the same syntax as in the rig
 % Plant states
 dxk = dxPlant0;
 zk = zPlant0;
+eProbek = [0;0;0];
+dPk = 0.2788*dxk(1:3).^2 + 1.143*dxk(1:3) - 2.3831; % dP model previosly calculated
 probeStatusk = [0;0;0]; % flag --> 0 = healthy | 1 = degraded
-dk = parPlant.dMax*ones(3,1); %initial probe diameter
 
 % Inputs
 uk = [0.5;     %CV-101 opening [-]
@@ -96,11 +97,11 @@ thetak = thetaPlant0;
 xPlantArray = dxk;
 zPlantArray = zk;
 uPlantArray = uk;
-measPlantArray = [parPlant.H*zk];
+measPlantArray = [parPlant.H*zk; dPk];
 thetaPlantArray = thetak;
 ofPlantArray = 20*(measPlantArray(1)) + 10*(measPlantArray(2)) + 30*(measPlantArray(3));
 probeStatusArray = probeStatusk;
-probeOrificeArray = dk;
+probeDegradArray = eProbek;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Production Optimization Methods Data %
@@ -120,18 +121,20 @@ for kk = 1:nFinal/parPlant.T
     fprintf('     kk >>> %6.4f [min]\n',tgrid(kk + 1))   
     
     % simulate the SS model
-    [dxk,zk,~,~,~] = ErosionRigSSPlant(dxk,zk,thetak,uk,dk,parPlant);
+    [dxk,zk,~,~,~] = ErosionRigSSPlant(dxk,zk,thetak,uk,parPlant);
     
     % evolving probe degradation
-    [dk,probeStatusk] = ProbeErosionModel(dk,probeStatusk,parPlant);
+    temp = parPlant.H*zk; % converting flowrate measurements to correct units
+    [dPk,eProbek,probeStatusk] = ProbeErosionModel(temp(1:3),eProbek,parPlant.T/60,erosionEvolution);
+    
     
     % saving the results
     xPlantArray = [xPlantArray, dxk];
     zPlantArray = [zPlantArray, zk];
-    measPlantArray = [measPlantArray, [parPlant.H*zk]]; %adding artificial noise to the measurements  + noise.output*randn(6,1)
+    measPlantArray = [measPlantArray, [parPlant.H*zk + noise.output*randn(6,1); dPk]]; %adding artificial noise to the measurements
     ofPlantArray = [ofPlantArray, 20*(measPlantArray(1,end)) + 10*(measPlantArray(2,end)) + 30*(measPlantArray(3,end));];
     probeStatusArray = [probeStatusArray, probeStatusk];
-    probeOrificeArray = [probeOrificeArray, dk];
+    probeDegradArray = [probeDegradArray, eProbek];
     
     % we execute the production optimization:
     % a. after the initial [BufferLength]-second buffer
@@ -149,9 +152,7 @@ for kk = 1:nFinal/parPlant.T
                     ones(3,BufferLength);                             % FI-104 [sL/min] & FI-105 [sL/min] & FI-106 [sL/min]. Not used here
                     ones(3,BufferLength); %dummy values --> in the actual rig, they will the pressure at injection point (PI105, PI106, PI107). Not used here
                     ones(3,BufferLength); %dummy values --> in the actual rig, they will the well temperature (TI101, TI102, TI103). Not used here
-                    (measPlantArray(7,(kk - BufferLength + 2):kk + 1) - 1.01325)*10^3; % dPI-101 [mbar]
-                    (measPlantArray(8,(kk - BufferLength + 2):kk + 1) - 1.01325)*10^3; % dPI-102 [mbar] 
-                    (measPlantArray(9,(kk - BufferLength + 2):kk + 1) - 1.01325)*10^3; % dPI-103 [mbar]
+                    ones(3,BufferLength); %dummy values --> in the actual rig, they will be dP in a given pipe section (dPI101, dPI102, dPI103). Not used here
                     (measPlantArray(4,(kk - BufferLength + 2):kk + 1) - 1.01325)*10^3; % PI-101 [mbar g]
                     (measPlantArray(5,(kk - BufferLength + 2):kk + 1) - 1.01325)*10^3; % PI-102 [mbar g] 
                     (measPlantArray(6,(kk - BufferLength + 2):kk + 1) - 1.01325)*10^3; % PI-103 [mbar g]
@@ -198,10 +199,10 @@ for kk = 1:nFinal/parPlant.T
     % updating input and parameter vectors %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Saving setpoints
-    uk = [O_vector(1);  %CV-101 opening [-]
-          O_vector(2);  %CV-102 opening [-]
-          O_vector(3);  %CV-103 opening [-]
-          uPlantArray(4,end)]; %PI-104 [bar]    
+%     uk = [O_vector(1);  %CV-101 opening [-]
+%           O_vector(2);  %CV-102 opening [-]
+%           O_vector(3);  %CV-103 opening [-]
+%           uPlantArray(4,end)]; %PI-104 [bar]    
     uPlantArray = [uPlantArray, uk];
 
      % Updating plant parameters according to pre-computed array
@@ -226,7 +227,7 @@ leg = {'w_1','w_2','w_3'};
 f = figure(1);
 for well = 1:3
     subplot(3,1,well)
-        plot(tgrid, uPlantArray(well,:),'bo','Linewidth',1)
+        plot(tgrid, uPlantArray(well,:),'bo','Linewidth',1.5)
         
         ylim([0.05 0.95])
         
@@ -247,12 +248,12 @@ for well = 1:3
     subplot(3,1,well)
     
         yyaxis left
-        plot(tgrid, measPlantArray(well,:),'bd-','Linewidth',1)
+        plot(tgrid, measPlantArray(well,:),'bd-','Linewidth',1.5)
         ylim([2 11])
         ylabel('Q_l [L/min]','FontSize',10)
         
         yyaxis right
-        plot(tgrid, measPlantArray(3 + well,:),'rx-','Linewidth',1)
+        plot(tgrid, measPlantArray(3 + well,:),'rx-','Linewidth',1.5)
         ylim([0.9 1.1])
         ylabel('P_{top} [mbar G]','FontSize',10)
 
@@ -272,14 +273,16 @@ for well = 1:3
     subplot(3,1,well)
     
         yyaxis left
-        plot(tgrid, measPlantArray(6 + well,:),'bx-','Linewidth',1.5)
+        plot(tgrid, measPlantArray(6 + well,:),'kx-','Linewidth',1.5)
         %ylim([2 11])
         ylabel('dP [mbar]','FontSize',10)
         
         yyaxis right
-        stairs(tgrid, probeOrificeArray(well,:),'r:','Linewidth',1.5)
-        ylim([parPlant.dMin parPlant.dMax])
-        ylabel('Orifice diameter','FontSize',10)
+        stairs(tgrid, probeDegradArray(well,:),'r:','Linewidth',1.5)
+        ylim([-0.1 1.1])
+        yticks(0:1)
+        yticklabels({'healthy','deg.'})
+        ylabel('Probe status','FontSize',10)
 
         xticks(0:(10*parPlant.T/60):(1/60)*(nFinal))
         xlim([0 (1/60)*(nFinal)])

@@ -55,13 +55,6 @@ par.D_r = 0.02*ones(par.n_w,1);
 %riser areas
 par.A_r = pi.*(par.D_r/2).^2;%[m2]
 
-%coefficient of discharge
-par.Cd_hat = 0.00963481031516700;
-
-% minimum equivalent diameter
-par.dMin = 0.2829;
-par.dMax = 0.3;
-
 %% Upper limits 
 %Max wellhead gas production rate 
 par.QgMax = 7.5; % [sL/min] 

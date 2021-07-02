@@ -149,7 +149,7 @@ nlp = struct('x',vertcat(w{:}),'f',J,'g',vertcat(g{:}));
 options = struct;
 options.ipopt.print_level = 5;
 % options.ipopt.acceptable_constr_viol_tol = 0.01;
-Est = nlpsol('solver','ipopt',nlp,options);
+Sim = nlpsol('solver','ipopt',nlp,options);
 
 % ===================================
 %     Solving
@@ -165,15 +165,15 @@ lbg = zeros(length(xGuess) + length(zGuess),1); %SS - dif and alg == 0
 ubg = zeros(length(xGuess) + length(zGuess),1);
 
 % Solve
-sol = Est('x0',wk,'lbg',lbg,'ubg',ubg,'lbx',lbw,'ubx',ubw);
+sol = Sim('x0',wk,'lbg',lbg,'ubg',ubg,'lbx',lbw,'ubx',ubw);
 
-flag = Est.stats.success;
-if Est.stats.success ~=1
+flag = Sim.stats.success;
+if Sim.stats.success ~=1
     msg = ['Error simulating model'];
     error(msg);
 end
 
-%clc %clean ipopt output
+clc %clean ipopt output
 
 % Extract Solution
 xSS = full(sol.x(1:length(xGuess)));

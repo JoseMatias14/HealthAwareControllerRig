@@ -24,6 +24,11 @@ p_rh_ub = 1.500.*ones(n_w,1); %49
 p_bh_lb = 0.*ones(n_w,1);
 p_bh_ub = 2.*ones(n_w,1);
 
+%delta pressure - along erosion chamber [mbar]
+dp_lb = 0.*ones(n_w,1);
+dp_ub = 50.*ones(n_w,1);
+
+
 %% Inputs
 % valve opening [0-1]
 vo_lb = 0.1*ones(n_w,1);
@@ -44,11 +49,11 @@ val_theta_ub=10.*ones(n_w,1);
 
 %% 
 lbx = vertcat(m_o_lb);
-lbz = vertcat(w_ro_lb,w_pr_lb,p_rh_lb,p_bh_lb);
+lbz = vertcat(w_ro_lb,w_pr_lb,p_rh_lb,p_bh_lb,dp_lb);
 lbu = vertcat(vo_lb,Ppump_lb);
 lbp = vertcat(res_theta_lb,val_theta_lb);
 
 ubx = vertcat(m_o_ub);
-ubz = vertcat(w_ro_ub,w_pr_ub,p_rh_ub,p_bh_ub);
+ubz = vertcat(w_ro_ub,w_pr_ub,p_rh_ub,p_bh_ub,dp_ub);
 ubu = vertcat(vo_ub,Ppump_ub);
 ubp = vertcat(res_theta_ub,val_theta_ub);
