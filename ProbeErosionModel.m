@@ -1,9 +1,10 @@
-function [dk_1,probeStatusk] = ProbeErosionModel(dk,probeStatusk,par)
+function [dk_1,probeStatusk] = ProbeErosionModel(dk,Qk,probeStatusk,par)
 %    Simulates the degradation of the PVA probe in the lab rig - the models
 %    were obtained with rig data. See Erosion Model folder
 
 % Inputs:
 %    dk = current orifice diameter [cm]
+%    Qk = current system flowrate [L/min]
 %    probeStatusk_1 = current probe status
 %    par = system parameters
 
@@ -22,13 +23,23 @@ function [dk_1,probeStatusk] = ProbeErosionModel(dk,probeStatusk,par)
 import casadi.*
 
 %% Models
-% calculating random increment
-dk_1 = dk - 0.0005*gamrnd(0.8,2,[3 1]);
 
-% cannot be more degraded than 100%
+
+
 for well = 1:3
-    if dk_1(well) < par.dMin % all need to be lower than 1
-        dk_1(well) = par.dMin;
+    % calculating random increment
+    %state dependent time evolution
+    if Qk(well) < 5
+        alpha = 0.5;
+    else
+        alpha = 0.0043*Qk(well)^3 - 0.0949*Qk(well)^2 + 0.7305*Qk(well) - 1.32;
+    end
+    
+    dk_1(well,1) = dk(well) - 0.0005*gamrnd(alpha,2);
+
+    % cannot be more degraded than 100%
+    if dk_1(well,1) < par.dMin % all need to be lower than 1
+        dk_1(well,1) = par.dMin;
         probeStatusk(well) = 1;
     end
 end

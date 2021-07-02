@@ -19,9 +19,12 @@ clc
 % legend('a = 1, b = 10','a = 3, b = 5','a = 6, b = 4')
 
 %plotting behavior
+Q = 12.5;
+tEnd = -3*Q + 51.333;
 data = [0.3, 0;
-        0.2829, 21.333];
-    
+        0.2829, tEnd];
+
+tMax = ceil(tEnd);
     
 %noise seed
 rng('default')    
@@ -31,8 +34,8 @@ for mc = 1:500  % samples
     
     t0 = 0.3;
     traj = t0;
-    for kk = 1:22 %time
-        t0 = t0 - 0.0005*gamrnd(0.8,2);
+    for kk = 1:tMax %time
+        t0 = t0 - 0.0005*gamrnd(1.3,2);
         traj = [traj, t0];
     end
     trajectories = [trajectories; traj];
@@ -45,13 +48,23 @@ stdTrajectory = std(trajectories,[],1);
 figure(2)
 hold on
 for ii = 1:500
-    plot(0:22,trajectories(ii,:),'Color',[0,0,0,0.05])
+    plot(0:tMax,trajectories(ii,:),'Color',[0,0,0,0.05])
 end
 
-plot(0:22,meanTrajectory,'k','Linewidth',1.5)
-plot(0:22,meanTrajectory + 2*stdTrajectory,'k:','Linewidth',1.5)
-plot(0:22,meanTrajectory - 2*stdTrajectory,'k:','Linewidth',1.5)
+plot(0:tMax,meanTrajectory,'k','Linewidth',1.5)
+plot(0:tMax,meanTrajectory + 2*stdTrajectory,'k:','Linewidth',1.5)
+plot(0:tMax,meanTrajectory - 2*stdTrajectory,'k:','Linewidth',1.5)
 
 plot(data(:,2),data(:,1),'r','Linewidth',1.5)
 xlabel('time [min]')
 ylabel('d [cm]')
+
+% found manually
+% Q = 5, alpha = 0.5
+% Q = 7.5, alpha = 0.6
+% Q = 10, alpha = 0.8
+% Q = 12.5, alpha = 1.3
+% Q = 15, alpha = 2.7
+% function = y = 0.0043x3 - 0.0949x2 + 0.7305x - 1.32 --> Excel
+
+

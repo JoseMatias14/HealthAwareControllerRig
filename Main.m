@@ -120,15 +120,16 @@ for kk = 1:nFinal/parPlant.T
     fprintf('     kk >>> %6.4f [min]\n',tgrid(kk + 1))   
     
     % simulate the SS model
-    [dxk,zk,~,~,~] = ErosionRigSSPlant(dxk,zk,thetak,uk,dk,parPlant);
+    [dxk,zk,yk,~,~] = ErosionRigSSPlant(dxk,zk,thetak,uk,dk,parPlant);
+    
     
     % evolving probe degradation
-    [dk,probeStatusk] = ProbeErosionModel(dk,probeStatusk,parPlant);
+    [dk,probeStatusk] = ProbeErosionModel(dk,yk(1:3),probeStatusk,parPlant);
     
     % saving the results
     xPlantArray = [xPlantArray, dxk];
     zPlantArray = [zPlantArray, zk];
-    measPlantArray = [measPlantArray, [parPlant.H*zk]]; %adding artificial noise to the measurements  + noise.output*randn(6,1)
+    measPlantArray = [measPlantArray, yk]; %adding artificial noise to the measurements  + noise.output*randn(6,1)
     ofPlantArray = [ofPlantArray, 20*(measPlantArray(1,end)) + 10*(measPlantArray(2,end)) + 30*(measPlantArray(3,end));];
     probeStatusArray = [probeStatusArray, probeStatusk];
     probeOrificeArray = [probeOrificeArray, dk];
