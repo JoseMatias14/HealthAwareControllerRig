@@ -74,7 +74,7 @@ InitializationLabViewMain %here we use the same syntax as in the rig
 dxk = dxPlant0;
 zk = zPlant0;
 probeStatusk = [0;0;0]; % flag --> 0 = healthy | 1 = degraded
-dk = parPlant.dMax*ones(3,1); %initial probe diameter
+dk = parPlant.dMin*ones(3,1); %initial probe diameter
 
 % Inputs
 uk = [0.5;     %CV-101 opening [-]
@@ -121,7 +121,6 @@ for kk = 1:nFinal/parPlant.T
     
     % simulate the SS model
     [dxk,zk,yk,~,~] = ErosionRigSSPlant(dxk,zk,thetak,uk,dk,parPlant);
-    
     
     % evolving probe degradation
     [dk,probeStatusk] = ProbeErosionModel(dk,yk(1:3),probeStatusk,parPlant);
@@ -279,7 +278,8 @@ for well = 1:3
         
         yyaxis right
         stairs(tgrid, probeOrificeArray(well,:),'r:','Linewidth',1.5)
-        ylim([parPlant.dMin parPlant.dMax])
+        ylim([parPlant.dMin 0.32])
+        yticks(parPlant.dMin:0.0036:parPlant.dMax)
         ylabel('Orifice diameter','FontSize',10)
 
         xticks(0:(10*parPlant.T/60):(1/60)*(nFinal))
@@ -290,48 +290,4 @@ for well = 1:3
         title(name,'FontSize',10)  
         
 end
-     
-% %% parameters
-% f = figure(4);
-% 
-% for well = 1:3
-%     
-%     subplot(3,2,2*(well - 1) + 1)
-%         hold on
-%         plot(tgrid, thetaPlantArray(well,:),'k:','Linewidth',1.5)
-%         
-%         % chosen manually
-%         if well == 1
-%             ylim([0.01 0.5])
-%         elseif well == 2
-%             ylim([0.01 0.2])
-%         else
-%             ylim([0.01 0.5])
-%         end
-%         
-%         xticks(0:(20*parPlant.T/60):(1/60)*(nFinal))
-%         xlim([0 (1/60)*(nFinal)])
-%         
-%         xlabel('time [min]','FontSize',10)
-%         title('Reservoir Parameters','FontSize',10)
-% 
-%    subplot(3,2,2*(well - 1) + 2)
-%         hold on
-%         plot(tgrid, thetaPlantArray(3 + well,:),'k:','Linewidth',1.5)  
-%                 
-%         % chosen manually
-%         if well == 1
-%             ylim([0.4 1])
-%         elseif well == 2
-%             ylim([0.4 1])
-%         else
-%             ylim([0.5 1.1])
-%         end
-%         
-%         xticks(0:(20*parPlant.T/60):(1/60)*(nFinal))
-%         xlim([0 (1/60)*(nFinal)])
-% 
-%         xlabel('time [min]','FontSize',10)
-%         title('Valve Parameters','FontSize',10)
-% 
-% end
+ 

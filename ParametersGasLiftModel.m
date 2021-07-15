@@ -59,8 +59,8 @@ par.A_r = pi.*(par.D_r/2).^2;%[m2]
 par.Cd_hat = 0.00963481031516700;
 
 % minimum equivalent diameter
-par.dMin = 0.2829;
-par.dMax = 0.3;
+par.dMin = 0.3;
+par.dMax = 0.3181;
 
 %% Upper limits 
 %Max wellhead gas production rate 

@@ -1,5 +1,5 @@
 clear 
-close all
+%close all
 clc
 
 % x = 0:0.1:50;
@@ -18,46 +18,63 @@ clc
 % ylabel('Probability Density')
 % legend('a = 1, b = 10','a = 3, b = 5','a = 6, b = 4')
 
-%plotting behavior
-Q = 12.5;
-tEnd = -3*Q + 51.333;
-data = [0.3, 0;
-        0.2829, tEnd];
-
-tMax = ceil(tEnd);
-    
 %noise seed
 rng('default')    
   
 trajectories = [];
-for mc = 1:500  % samples
+
+figure(1)
+count = 1;
+
+for QQ = [5, 7.5, 10, 12.5, 15]
+
+    alpha = 0.0043*QQ^3 - 0.0949*QQ^2 + 0.7305*QQ - 1.32;
+
+    tEnd = -3*QQ + 51.333;
+    data = [0.3, 0;
+        0.3181, ceil(tEnd)];
     
-    t0 = 0.3;
-    traj = t0;
-    for kk = 1:tMax %time
-        t0 = t0 - 0.0005*gamrnd(1.3,2);
-        traj = [traj, t0];
+    tMax = ceil(tEnd);
+
+    %%%%%%%%%%%%%%%
+    % Monte Carlo %
+    %%%%%%%%%%%%%%%
+    trajectories = [];
+    for mc = 1:500  % samples
+
+        t0 = 0.3;
+        traj = t0;
+        for kk = 1:tMax %time
+            t0 = t0 + 0.0005*gamrnd(alpha,2);
+            traj = [traj, t0];
+        end
+        trajectories = [trajectories; traj];
+
     end
-    trajectories = [trajectories; traj];
 
+    meanTrajectory = mean(trajectories,1);
+    stdTrajectory = std(trajectories,[],1);
+
+    subplot(3,2,count)
+        hold on
+        for ii = 1:500
+            plot(0:tMax,trajectories(ii,:),'Color',[0,0,0,0.05])
+        end
+
+        plot(0:tMax,meanTrajectory,'k','Linewidth',1.5)
+        plot(0:tMax,meanTrajectory + 2*stdTrajectory,'k:','Linewidth',1.5)
+        plot(0:tMax,meanTrajectory - 2*stdTrajectory,'k:','Linewidth',1.5)
+
+        plot(data(:,2),data(:,1),'r','Linewidth',1.5)
+        xlim([0, 40])
+
+        xlabel('time [min]')
+        ylabel('d [cm]')
+
+        title(['Q: ',num2str(QQ)])
+
+        count = count + 1;
 end
-
-meanTrajectory = mean(trajectories,1);
-stdTrajectory = std(trajectories,[],1);
-
-figure(2)
-hold on
-for ii = 1:500
-    plot(0:tMax,trajectories(ii,:),'Color',[0,0,0,0.05])
-end
-
-plot(0:tMax,meanTrajectory,'k','Linewidth',1.5)
-plot(0:tMax,meanTrajectory + 2*stdTrajectory,'k:','Linewidth',1.5)
-plot(0:tMax,meanTrajectory - 2*stdTrajectory,'k:','Linewidth',1.5)
-
-plot(data(:,2),data(:,1),'r','Linewidth',1.5)
-xlabel('time [min]')
-ylabel('d [cm]')
 
 % found manually
 % Q = 5, alpha = 0.5
