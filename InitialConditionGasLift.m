@@ -1,5 +1,5 @@
 %Initial Condition Simplified
-function [dx0,z0,u0,theta0] = InitialConditionGasLift(par)
+function [x0,z0,u0,theta0] = InitialConditionGasLift(par)
 %   Defines the initial state
 %   pre-computed from experimental data using a SS estimation routine
 
@@ -18,7 +18,7 @@ function [dx0,z0,u0,theta0] = InitialConditionGasLift(par)
 % previously computed
 temp = load('InitialState_2021-03-03_104459_NoRTO_test2_1');
 
-dx0 = vertcat(temp.m_o_0);
+x0 = vertcat(temp.m_o_0);
 Ql = temp.w_ro_0*1e-2*60*1e3./par.rho_o;
 dP0 = 0.2788*Ql.^2 + 1.143*Ql - 2.3831; % dP model previosly calculated
 z0 = vertcat(temp.w_ro_0,temp.w_pr_0,temp.p_rh_0,temp.p_bh_0,dP0);

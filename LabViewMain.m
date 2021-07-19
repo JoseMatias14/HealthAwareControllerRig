@@ -80,21 +80,25 @@ dss = size(pi104,2);
 % CODE GOES HERE %
 %%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%
-% CODE GOES HERE %
-%%%%%%%%%%%%%%%%%%
+% Solving Health-aware controller
+[uk,solFlag] = SolvingNMPC(solverNMPC,dk,[xk;zk],uk(1:3),pi104 + 1.01325,thetak(1:3),thetak(4:6),nmpcConfig);
+
 % compute new values for the valve opening setpoints
 % using random values for testing
-o_new = 0.1*ones(3,1) + (0.9*ones(3,1) - 0.1*ones(3,1)).*rand(3,1);
-O_vector = O_vector + OptConf.ku.*(o_new - O_vector);
+%o_new = 0.1*ones(3,1) + (0.9*ones(3,1) - 0.1*ones(3,1)).*rand(3,1);
+if solFlag
+    O_vector = uk;
+    Optimization = 1;
+else % controller failed
+    O_vector = O_vector'; %dummy - doesn't do anything
+    Optimization = 0;
+end
 
 SS = 0;
 Estimation = 0;
-Optimization = 0;
 Result = 0;
 Parameter_Estimation = [0,0,0,0,0,0];
 State_Variables_Estimation = [0,0,0,0,0,0];
 State_Variables_Optimization = [0,0,0,0,0,0];
 Optimized_Air_Injection = [0,0,0];
-    
 

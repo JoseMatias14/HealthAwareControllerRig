@@ -19,7 +19,7 @@ close all
 clc
 
 %saving data
-name = 'Eroding_pva_probe';
+name = 'HAC_deterministic';
 %noise seed
 rng('default')
 
@@ -51,7 +51,7 @@ nFinal = 50*parPlant.T; %[sampling time] - arbitrarily chosen
 tgrid = (nInit:parPlant.T:nFinal)/parPlant.T; %[min] one measurements per second
 
 %initial condition
-[dxPlant0,zPlant0,uPlant0,thetaPlant0] = InitialConditionGasLift(parPlant);
+[xPlant0,zPlant0,uPlant0,thetaPlant0] = InitialConditionGasLift(parPlant);
 
 %states to measurement mapping function
 parPlant.nMeas = 6;
@@ -66,12 +66,9 @@ parPlant.H(7,13) = 1; %dp - well 1
 parPlant.H(8,14) = 1; %dp - well 2
 parPlant.H(9,15) = 1; %dp - well 3
 
-%% Run configuration file
-InitializationLabViewMain %here we use the same syntax as in the rig
-
 %% Initializing simulation
 % Plant states
-dxk = dxPlant0;
+xk = xPlant0;
 zk = zPlant0;
 probeStatusk = [0;0;0]; % flag --> 0 = healthy | 1 = degraded
 dk = parPlant.dMin*ones(3,1); %initial probe diameter
@@ -88,12 +85,15 @@ O_vector = [uk(1); uk(2); uk(3)];
 % "Plant" parameters
 thetak = thetaPlant0;
 
+%% Run configuration file
+InitializationLabViewMain %here we use the same syntax as in the rig
+
 %% Run mock-up loop
 % arrays for plotting
 %%%%%%%%%%%%%%%%
 % "Plant" Data %
 %%%%%%%%%%%%%%%%
-xPlantArray = dxk;
+xPlantArray = xk;
 zPlantArray = zk;
 uPlantArray = uk;
 measPlantArray = [parPlant.H*zk];
@@ -120,13 +120,13 @@ for kk = 1:nFinal/parPlant.T
     fprintf('     kk >>> %6.4f [min]\n',tgrid(kk + 1))   
     
     % simulate the SS model
-    [dxk,zk,yk,~,~] = ErosionRigSSPlant(dxk,zk,thetak,uk,dk,parPlant);
+    [xk,zk,yk,~,~] = ErosionRigSSPlant(xk,zk,thetak,uk,dk,parPlant);
     
     % evolving probe degradation
     [dk,probeStatusk] = ProbeErosionModel(dk,yk(1:3),probeStatusk,parPlant);
     
     % saving the results
-    xPlantArray = [xPlantArray, dxk];
+    xPlantArray = [xPlantArray, xk];
     zPlantArray = [zPlantArray, zk];
     measPlantArray = [measPlantArray, yk]; %adding artificial noise to the measurements  + noise.output*randn(6,1)
     ofPlantArray = [ofPlantArray, 20*(measPlantArray(1,end)) + 10*(measPlantArray(2,end)) + 30*(measPlantArray(3,end));];
@@ -170,8 +170,13 @@ for kk = 1:nFinal/parPlant.T
         % values of the inputs (valve opening) of the last optimization run (dim = nQg[3] X 1)
         %O_vector = uPlantArray(1:3,kk - nExec);
         
+        tic 
+        
         % Run Labview/Matlab interface file
         LabViewMain
+        
+        % computing execution time
+        controlTime = toc;
 
         flagArray = [flagArray, [SS;Estimation;Optimization]]; 
         ofArray = [ofArray, Result]; 
