@@ -207,13 +207,27 @@ for kk = 1:nFinal/parPlant.T
           O_vector(2);  %CV-102 opening [-]
           O_vector(3);  %CV-103 opening [-]
           uPlantArray(4,end)]; %PI-104 [bar]    
-    uPlantArray = [uPlantArray, uk];
+
+uPlantArray = [uPlantArray, uk];
 
      % Updating plant parameters according to pre-computed array
      %   the values are updated every 10s
      thetak = parProfile.thetaPlant(:,kk*6); 
      thetaPlantArray = [thetaPlantArray, thetak];
     
+     
+     % emulating system breaking if threshold is achieved
+     if ~all(dk < nmpcConfig.x_threshold)
+         
+         % saving breakdown time
+         tBreak = kk;
+         % updating tgrid
+         tgrid = (nInit:parPlant.T:(tBreak*parPlant.T))/parPlant.T; %[min] one measurements per second
+
+         %breaking loop
+         break
+     end
+   
 end
 
 % save(name,'flagArray','ofArray','thetaHatArray','xEstArray','xOptArray','uOptArray','uImpArray'); 
@@ -282,7 +296,10 @@ for well = 1:3
         ylabel('dP [mbar]','FontSize',10)
         
         yyaxis right
-        stairs(tgrid, probeOrificeArray(well,:),'r:','Linewidth',1.5)
+        stairs(tgrid, probeOrificeArray(well,:),'k-','Linewidth',1.5)
+        hold on 
+        yline(nmpcConfig.x_threshold,'r:','Linewidth',1);
+        
         ylim([parPlant.dMin 0.32])
         yticks(parPlant.dMin:0.0036:parPlant.dMax)
         ylabel('Orifice diameter','FontSize',10)
