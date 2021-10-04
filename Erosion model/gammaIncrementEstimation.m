@@ -28,9 +28,10 @@ count = 1;
 
 for QQ = [5, 7.5, 10, 12.5, 15]
 
-    alpha = 0.0043*QQ^3 - 0.0949*QQ^2 + 0.7305*QQ - 1.32;
+    theta = 0.0043*QQ^3 - 0.0949*QQ^2 + 0.7305*QQ - 1.32;
 
     tEnd = -3*QQ + 51.333;
+    
     data = [0.3, 0;
         0.3181, ceil(tEnd)];
     
@@ -42,11 +43,14 @@ for QQ = [5, 7.5, 10, 12.5, 15]
     trajectories = [];
     for mc = 1:500  % samples
 
-        t0 = 0.3;
-        traj = t0;
+        d0 = 0.3;
+        traj = d0;
+        dk = d0;
         for kk = 1:tMax %time
-            t0 = t0 + 0.0005*gamrnd(alpha,2);
-            traj = [traj, t0];
+            
+            dk = dk + 0.0005*gamrnd(2,theta);
+            
+            traj = [traj, dk];
         end
         trajectories = [trajectories; traj];
 
@@ -74,6 +78,50 @@ for QQ = [5, 7.5, 10, 12.5, 15]
         title(['Q: ',num2str(QQ)])
 
         count = count + 1;
+end
+
+%% plotting gamma distributions
+count = 2;
+
+lab = {'low Q', 'nanan', 'lalala', 'medium Q','high Q'};
+
+for QQ = [5, 7.5, 10, 12.5, 15]
+
+    theta = 0.0043*QQ^3 - 0.0949*QQ^2 + 0.7305*QQ - 1.32;
+
+    tEnd = -3*QQ + 51.333;
+    data = [0.3, 0;
+        0.3181, ceil(tEnd)];
+    
+    tMax = ceil(tEnd);
+    
+    alpha = 2;
+    
+    % closed form pdf
+    X = 0:0.01:20;
+
+    % shape parameter
+    theta1 = 1/theta;
+    f = (theta1.^alpha).*(X.^(alpha - 1)).*exp(-theta1.*X)/gamma(alpha);
+   
+    figure(count)
+    plot(X,f,'k','LineWidth',1.5)
+    grid on 
+    
+    %set(gca,'xtick',[])
+    %set(gca,'xticklabel',[])
+    %set(gca,'ytick',[])
+    %set(gca,'yticklabel',[])
+    
+    %xlabel('\Delta X_{k + \tau |k}','Fontsize',16)
+    xlabel('d_{inc}','Fontsize',16)
+    ylabel('pdf','Fontsize',16)
+    
+    title(['Q: ',num2str(QQ)],'Fontsize',16)
+    
+%     title(lab{count - 1},'Fontsize',16)
+     count = count + 1;
+
 end
 
 % found manually

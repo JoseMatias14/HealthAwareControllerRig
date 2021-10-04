@@ -296,7 +296,7 @@ for well = 1:3
         ylabel('dP [mbar]','FontSize',10)
         
         yyaxis right
-        stairs(tgrid, probeOrificeArray(well,:),'k-','Linewidth',1.5)
+        stairs(tgrid, probeOrificeArray(well,:),'r-','Linewidth',1.5)
         hold on 
         yline(nmpcConfig.x_threshold,'r:','Linewidth',1);
         

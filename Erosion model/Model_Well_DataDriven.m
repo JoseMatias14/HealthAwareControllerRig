@@ -16,17 +16,14 @@ RUL = -3*Ql + 51.333;
 
 % model with second order terms 
 
-dPModel2 = a + b*tData + c*QlData + d*tData.*QlData + e*QlData.^2;
+% dPModel2 = a + b*tData + c*QlData + d*tData.*QlData + e*QlData.^2;
 
 % dPModel2 = -4.45057218353704 + 0.150265436491970*tData + 1.88054326803212*QlData -0.0503621574689086*tData.*QlData + 0.213170980385915*QlData.^2;
 
 % model with interaction terms 
 %dPModel = a + b*tData + c*QlData + d*tData.*QlData;
 %dPModel = -12.6939161211782 + 0.212753805754387*tData + 4.70493852121859*QlData -0.0618564737866064*tData.*QlData;
-
-
-
-a = dPModel2;
+%a = dPModel2;
 %% checking the behavior of the max/min DP
 % the maximum dP value indicates a new probe
 % the minimum dP value indicates an old probe

@@ -110,6 +110,6 @@ for well = 1:3
         hold on 
         plot(X,Ymodel,'kx')
         legend({'Data','Model'})
-        xlabel('Ql [L/min]') ; ylabel('dP [mbar]'); title('Estimating d_max')
+        xlabel('Ql [L/min]') ; ylabel('dP [mbar]'); title('Estimating d_{max}')
 end
 

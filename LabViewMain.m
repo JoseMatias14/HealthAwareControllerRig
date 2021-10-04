@@ -79,7 +79,6 @@ dss = size(pi104,2);
 %%%%%%%%%%%%%%%%%%
 % CODE GOES HERE %
 %%%%%%%%%%%%%%%%%%
-
 % Solving Health-aware controller
 [uk,solFlag] = SolvingNMPC(solverNMPC,dk,[xk;zk],uk(1:3),pi104 + 1.01325,thetak(1:3),thetak(4:6),nmpcConfig);
 
