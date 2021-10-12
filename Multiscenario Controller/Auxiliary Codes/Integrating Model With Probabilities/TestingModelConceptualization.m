@@ -137,13 +137,13 @@ alg = vertcat(f1,f2,f3,f4,f5,f6,f7,f8);
 % give parameter values
 alg = substitute(alg,p_s,par.p_s);
 alg = substitute(alg,T_r,par.T_r);
-alg = substitute(alg,probCum,[0.75;0.5;0.25]);
+% alg = substitute(alg,probCum,[0.75;0.5;0.25]);
 
 % concatenate the differential and algebraic states
 x_var = vertcat(d);
 z_var = vertcat(m_o,w_ro,w_pr,p_rh,p_bh,dP,dD,prob);
 u_var = vertcat(vo,Ppump);
-p_var = vertcat(res_theta,val_theta);
+p_var = vertcat(res_theta,val_theta,probCum);
 
 % end modeling
 

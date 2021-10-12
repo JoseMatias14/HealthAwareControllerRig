@@ -1,11 +1,11 @@
 close all
-clear all
+clear
 clc
 
 %liquid flowrate - pilling up the three wells
 Ql = [2:10;2:10;2:10]; % [L/min]
 
-% DP [mbar]
+% DP [mbar] %%% FROM: Experimental Data.xlxs
 DPmin = [1.36, 3.20, 4.65, 6.76, 9.77, 13.13, 16.91, 21.56, 26.86;
          0.82, 1.89, 3.53, 5.80, 9.23, 12.59, 16.42, 20.64, 26.40;
          1.17, 2.99, 4.54, 7.42, 9.44, 13.57, 18.26, 22.53, 27.34];
