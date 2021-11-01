@@ -9,7 +9,7 @@ par = ParametersGasLiftModel;
 par.T = 60; % simulation sampling time[s]
 
 %initial condition
-[dx0,z0,u0,theta0] = InitialConditionGasLift(par);
+[dx0,z0,u0,theta0] = InitialConditionGasLift_model(par);
 
 % control tuning
 nmpcConfig.umax = 0.9;
