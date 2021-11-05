@@ -19,7 +19,7 @@ close all
 clc
 
 %saving data
-name = 'HAC_multiscenario_nt_MC_30_10_fewer';
+name = 'HAC_no_controller';
 %noise seed
 rng('default')
 
@@ -75,7 +75,6 @@ nMC = 100;
 
 % Monte Carlo assessment
 for mm = 1:nMC
-    
     %% Initializing simulation
     % Plant states
     xk = xPlant0;
@@ -94,7 +93,7 @@ for mm = 1:nMC
     
     % "Plant" parameters
     thetak = thetaPlant0;
-    
+        
     %% Run mock-up loop
     % arrays for plotting
     %%%%%%%%%%%%%%%%
@@ -121,6 +120,7 @@ for mm = 1:nMC
     uOptArray{mm} = []; % computed inputs (u_k^\star)
     uImpArray{mm} = []; % filtered inputs to be implemented (u_{k+1})
     controlTimeArray{mm} = []; % execution time
+
     
     for kk = 1:nFinal/parPlant.T
         
@@ -194,6 +194,7 @@ for mm = 1:nMC
             uOptArray{mm} = [uOptArray{mm}, Optimized_Air_Injection'];
             
             uImpArray{mm} = [uImpArray{mm}, O_vector];
+            
             controlTimeArray{mm} = [controlTimeArray{mm}, controlTime];
             
         else
@@ -206,6 +207,7 @@ for mm = 1:nMC
             uOptArray{mm} = [uOptArray{mm}, zeros(1,3)'];
             
             uImpArray{mm} = [uImpArray{mm}, zeros(1,3)'];
+            
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -238,10 +240,10 @@ for mm = 1:nMC
         end
         
     end
+    
 end
-
 %%
-save(name,'flagArray','ofArray','thetaHatArray','yEstArray','yOptArray','uOptArray','uImpArray','xPlantArray','zPlantArray','measPlantArray','ofPlantArray','probeStatusArray','probeOrificeArray','tgridArray','controlTimeArray'); 
+save(name,'flagArray','ofArray','thetaHatArray','yEstArray','yOptArray','uOptArray','uPlantArray','uImpArray','xPlantArray','zPlantArray','measPlantArray','ofPlantArray','probeStatusArray','probeOrificeArray','tgridArray','controlTimeArray'); 
 
 %%%%%%%%%%%%
 % Plotting %

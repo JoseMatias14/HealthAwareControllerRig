@@ -9,8 +9,8 @@
 [~,diff,alg,x_var,z_var,p_var] = BuildingDynModel_NMPC_prob(parPlant); % perfect model
 
 % control tuning
-nmpcConfig.umax = 0.75; %valve opening [-]
-nmpcConfig.umin = 0.25;
+nmpcConfig.umax = 0.95; %valve opening [-]
+nmpcConfig.umin = 0.05;
 nmpcConfig.dumax = 0.05; % 0.01 | 0.1
 nmpcConfig.x_threshold = 0.316; % probe diameter [cm]
 nmpcConfig.x_healthy = parPlant.dMin; % probe diameter [cm]
@@ -46,6 +46,7 @@ nmpcConfig.Nr = 2;
 nmpcConfig.Nlevels = size(nmpcConfig.scendist,1); 
 nmpcConfig.Nscenarios = nmpcConfig.Nlevels^nmpcConfig.Nr;
 nmpcConfig.ConsideredScen = [40,48,56,61,62,63,64];
+%nmpcConfig.ConsideredScen = [16,24,32,37,38,39,40,45,46,47,48,53,54,55,56,58,59,60,61,62,63,64];
 
 load('scenario_pruning_cumprob')
 temp = scen_avg_prob(nmpcConfig.ConsideredScen);
