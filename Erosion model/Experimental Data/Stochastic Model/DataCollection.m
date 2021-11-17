@@ -84,7 +84,7 @@ for exp = 1:par.ni
         
         for kk = 1:expTime
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Estimating model parameters %
+            % Estimating model parameters % 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             dP_sym = dP_fun(data{exp,cc}.flowrate(kk),d);
             
