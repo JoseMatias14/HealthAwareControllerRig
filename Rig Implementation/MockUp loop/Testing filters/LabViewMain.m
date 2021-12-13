@@ -84,9 +84,6 @@ if ~exist('kCheck','var')
     %initial condition
     [xHat,zHat,u0,thetaHat] = InitialConditionHAC(par);
     O_vector = u0(1:3);
-    
-    % filtering the diameter estimates
-    xHatFiltered = xHat; 
 
     % Building Dynamic Model
     [diff,alg,x_var,z_var,p_var] = BuildingDynModel(par); 
@@ -124,10 +121,60 @@ yEst = mean(yPlant,2);
 % yEst = yPlant;
 
 [thetaHat,zHat,Psi,flagEst] = HAC_SSEstimation(zHat,thetaHat,uEst,yEst,par);
-xHat = DiameterEstimation(xHat,yPlant(1:3,:),yPlant(7:9,:),par);
 
-% filtering diameter estimtes
-xHatFiltered = (1 - kFiltD)*xHat + kFiltD*xHatFiltered; 
+xHatArray = [];
+for jj = 1:dss
+    xHat = DiameterEstimation(xHat,yPlant(1:3,jj),yPlant(7:9,jj),par);
+    xHatArray = [xHatArray, xHat];
+end
+xHatFiltered = mean(xHatArray,2);
+
+xHat_MI = [];
+for well = 1:3
+    % fitting monotonic increasing line
+    n = length(1:dss);
+    C = eye(n);
+    D = xHatArray(well,:);
+    A = diag(ones(n,1),0) - diag(ones(n-1,1),1);
+    A(end,:) = [];
+    b = zeros(n-1,1);
+    
+    opts = optimset('lsqlin');
+    opts.LargeScale = 'off';
+    opts.Display = 'none';
+    xhat_temp = lsqlin(C,D,A,b,[],[],[],[],[],opts);
+    
+    xHat_MI = [xHat_MI; xhat_temp'];
+
+end
+
+xHat_mean = DiameterEstimation(xHat,yEst(1:3),yEst(7:9),par);
+
+%figure(1)
+%clf;
+for well = 1:3
+    %subplot(3,1,well)
+        % raw data
+        %plot(1:dss,xHatArray(well,:),'ok');
+        hold on
+        
+        % median filter
+        temp = medfilt1(xHatArray(well,:),20);
+        %plot(20:dss,temp(20:end),'b');
+        
+        % monotonic increasing function
+        %plot(1:dss,xHat_MI(well,:),'k');
+        
+        % mean of the estimates
+        temp2 = mean(xHatArray(well),2);
+        %yline(temp2,'r');
+        
+        % estimates using mean data
+        %yline(xHat_mean(well),'g');
+        
+        % saving data
+        diameterTemp{well} = [diameterTemp{well}, [xHatArray(well,end);temp(end);xHat_MI(well,end);temp2;xHat_mean(well)]];
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solving Health-aware controller %
@@ -149,7 +196,7 @@ SS = 0;
 Estimation = 0;
 Result = 0;
 Parameter_Estimation = [thetaHat(1),thetaHat(2),thetaHat(3),thetaHat(4),thetaHat(5),thetaHat(6)];
-State_Variables_Estimation = [xHat(1),xHat(2),xHat(3),xHatFiltered(1),xHatFiltered(2),xHatFiltered(3)];
-State_Variables_Optimization = [zHat(7),zHat(8),zHat(9),zHat(10),zHat(11),zHat(12)];
-Optimized_Air_Injection = [uk(1),uk(2),uk(3)];
+State_Variables_Estimation = [xHat(1),xHat(2),xHat(3),0,0,0];
+State_Variables_Optimization = [0,0,0,0,0,0];
+Optimized_Air_Injection = [0,0,0];
 

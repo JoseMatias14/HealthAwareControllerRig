@@ -84,9 +84,6 @@ if ~exist('kCheck','var')
     %initial condition
     [xHat,zHat,u0,thetaHat] = InitialConditionHAC(par);
     O_vector = u0(1:3);
-    
-    % filtering the diameter estimates
-    xHatFiltered = xHat; 
 
     % Building Dynamic Model
     [diff,alg,x_var,z_var,p_var] = BuildingDynModel(par); 
@@ -126,13 +123,10 @@ yEst = mean(yPlant,2);
 [thetaHat,zHat,Psi,flagEst] = HAC_SSEstimation(zHat,thetaHat,uEst,yEst,par);
 xHat = DiameterEstimation(xHat,yPlant(1:3,:),yPlant(7:9,:),par);
 
-% filtering diameter estimtes
-xHatFiltered = (1 - kFiltD)*xHat + kFiltD*xHatFiltered; 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solving Health-aware controller %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[uk,solFlag,uHacSeq,dHacSeq,~,~] = SolvingHAC(solverHAC,xHatFiltered,[zHat;yEst(7:9)],uEst(1:3),uEst(4),thetaHat(1:3),thetaHat(4:6),nmpcConfig);
+[uk,solFlag,uHacSeq,dHacSeq,~,~] = SolvingHAC(solverHAC,xHat,[zHat;yEst(7:9)],uEst(1:3),uEst(4),thetaHat(1:3),thetaHat(4:6),nmpcConfig);
 
 % compute new values for the valve opening setpoints
 % using random values for testing
@@ -149,7 +143,7 @@ SS = 0;
 Estimation = 0;
 Result = 0;
 Parameter_Estimation = [thetaHat(1),thetaHat(2),thetaHat(3),thetaHat(4),thetaHat(5),thetaHat(6)];
-State_Variables_Estimation = [xHat(1),xHat(2),xHat(3),xHatFiltered(1),xHatFiltered(2),xHatFiltered(3)];
-State_Variables_Optimization = [zHat(7),zHat(8),zHat(9),zHat(10),zHat(11),zHat(12)];
-Optimized_Air_Injection = [uk(1),uk(2),uk(3)];
+State_Variables_Estimation = [xHat(1),xHat(2),xHat(3),0,0,0];
+State_Variables_Optimization = [0,0,0,0,0,0];
+Optimized_Air_Injection = [0,0,0];
 

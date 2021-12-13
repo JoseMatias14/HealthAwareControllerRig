@@ -39,6 +39,4 @@ nmpcConfig.maxiter = 2000;
 % % regularization
 % nmpcConfig.R = 1*eye(nmpcConfig.nu); % 0 | 0.01 | 1  
 
-%% Diameter estimate filter
-kFiltD = 0.5;
 
