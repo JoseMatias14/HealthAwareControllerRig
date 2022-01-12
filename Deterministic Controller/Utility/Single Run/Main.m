@@ -237,6 +237,7 @@ end
 %%%%%%%%%%%%
 %% plotting the data 
 % checking sampling rate
+cmap = colormap(grey)
 markers = {'o','x','>'};
 cc = {'b','k','g'};
 leg = {'w_1','w_2','w_3'};
